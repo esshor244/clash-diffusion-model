@@ -1,104 +1,47 @@
-#!/usr/bin/env python
-# coding: utf-8
+import numpy as np  # the nickname is called an idiom, and there are best-
 
-# # A 1D Diffusion Model
-
-# Here we develop a one-dimensional numerical model of diffusion. It assumes a constant diffusivity. It uses a regular grid. It has a step function for an initial profile. It has fixed boundary conditions.
-
-# The diffusion equation is: 
-# 
-# $$ \frac{\partial z}{\partial t} = D\frac{\partial^2 z}{\partial x^2} $$
-# 
-# and the discretized version of the diffusion equation we'll solve is:
-# 
-# $$ z^{t+1}_x = z^t_x + {D \Delta t \over \Delta x^2} (z^t_{x+1} - 2z^t_x + z^t_{x-1}) $$
-# 
-
-# Here, $z$ is elevation, $t$ is time, $x$ is the spatial dimension, and $D$ is a transport-rate coefficient, sometimes called hillslope diffusivity -- with dimensions length squared per time.
-
-# The discretization represents the forward in time, centered in space (FTCS) scheme that you can look up in a textbook.
-
-# We'll use two libraries, NumPy (for arrays) and Matplotlib (for plots), that aren't a part of the core Python distrubtion. 
-
-# In[1]:
-
-
-import numpy as np # the nickname is called an idiom, and there are best-practice idioms to use
+# practice idioms to use
 import matplotlib.pyplot as plt
 
 
-# Start by setting two fixed model parameters-- the diffusivity and the szie of the model domain.
-
-# In[3]:
-
-
-# note that these are intentional examples of poor variable names; they are not descriptive
-D = 100 # diffusivitiy
-Lx = 300 # model domain
-
-
-# Next, set up the grid using a NumPy array.
-
-# In[7]:
+def plot_profile(grid, elevation, color="r", title=None, output=None):
+    plt.figure()
+    plt.plot(grid, elevation, color)
+    plt.xlabel("x")
+    plt.ylabel("z")
+    if title is not None:
+        plt.title(title)
+    if output is not None:
+        plt.savefig(output)
 
 
-dx = 0.5 # grid spacing
-x = np.arange(start=0, stop=Lx, step=dx)
-nx = len(x) # number of grid nodes
+def calculate_stable_time_step(grid_spacing, diffusivity):
+    return 0.5 * grid_spacing**2 / diffusivity
 
 
-# Set the initial conditions for the model. The elevation $z$ is a step functionwith a high value to the left, a low value to the right, and a cliff in the middle of the domain.
+if __name__ == "__main__":  # dunder variable (double underscore)
 
-# In[17]:
+    D = 100  # diffusivitiy
+    Lx = 300  # model domain
 
+    dx = 0.5  # grid spacing
+    x = np.arange(start=0, stop=Lx, step=dx)
+    nx = len(x)  # number of grid nodes
 
-z = np.zeros_like(x)
-z_left = 500
-z_right = 0
-z[x <= Lx / 2] = z_left
-z[x > Lx / 2] = z_right
+    z = np.zeros_like(x)
+    z_left = 500
+    z_right = 0
+    z[x <= Lx / 2] = z_left
+    z[x > Lx / 2] = z_right
 
+    plot_profile(x, z, title="Initial Hillslope Profile", output="initial-profile.png")
 
-# In[20]:
+    nt = 5000  # number of time steps
+    dt = calculate_stable_time_step(dx, D)
 
+    for t in range(0, nt):
+        z[1:-1] += D * dt / dx**2 * (z[:-2] - 2 * z[1:-1] + z[2:])
 
-plt.figure()
-plt.plot(x,z, 'r')
-plt.xlabel('x')
-plt.ylabel('z')
-plt.title('Initial Hillslope Profile')
-
-
-# Set up time stepping for the model. Calculate a stable time step from a stability criterion.
-
-# In[22]:
-
-
-nt = 5000 # number of time steps
-dt = 0.5 * dx**2 / D # time step 
-
-
-# Loop over the time steps of the model, solving the diffusion equation using the FTCS scheme described above. Note the use of array operations of the elevation $z$. The boundary conditions remain fixed in each time step.
-
-# In[25]:
-
-
-for t in range(0, nt):
-    z[1:-1] += D * dt / dx ** 2 * (z[:-2] - 2*z[1:-1] + z[2:])
-
-
-# In[24]:
-
-
-plt.figure()
-plt.plot(x, z, 'b')
-plt.xlabel('x')
-plt.ylabel('y')
-plt.title('Final Hillslope Profile')
-
-
-# In[ ]:
-
-
-
-
+    plot_profile(
+        x, z, color="b", title="Final Hillslope Profile", output="final-profile.png"
+    )
