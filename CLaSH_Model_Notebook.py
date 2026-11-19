@@ -1,13 +1,14 @@
-import numpy as np # the nickname is called an idiom, and there are best-
+import numpy as np  # the nickname is called an idiom, and there are best-
+
 # practice idioms to use
 import matplotlib.pyplot as plt
 
 
-def plot_profile(grid, elevation, color='r', title=None, output=None):
+def plot_profile(grid, elevation, color="r", title=None, output=None):
     plt.figure()
     plt.plot(grid, elevation, color)
-    plt.xlabel('x')
-    plt.ylabel('z')
+    plt.xlabel("x")
+    plt.ylabel("z")
     if title is not None:
         plt.title(title)
     if output is not None:
@@ -16,29 +17,31 @@ def plot_profile(grid, elevation, color='r', title=None, output=None):
 
 def calculate_stable_time_step(grid_spacing, diffusivity):
     return 0.5 * grid_spacing**2 / diffusivity
-        
 
-D = 100 # diffusivitiy
-Lx = 300 # model domain
 
-dx = 0.5 # grid spacing
-x = np.arange(start=0, stop=Lx, step=dx)
-nx = len(x) # number of grid nodes
+if __name__ == "__main__":  # dunder variable (double underscore)
 
-z = np.zeros_like(x)
-z_left = 500
-z_right = 0
-z[x <= Lx / 2] = z_left
-z[x > Lx / 2] = z_right
+    D = 100  # diffusivitiy
+    Lx = 300  # model domain
 
-plot_profile(x,z, title='Initial Hillslope Profile',
-             output='initial-profile.png')
+    dx = 0.5  # grid spacing
+    x = np.arange(start=0, stop=Lx, step=dx)
+    nx = len(x)  # number of grid nodes
 
-nt = 5000 # number of time steps
-dt = calculate_stable_time_step(dx, D)
+    z = np.zeros_like(x)
+    z_left = 500
+    z_right = 0
+    z[x <= Lx / 2] = z_left
+    z[x > Lx / 2] = z_right
 
-for t in range(0, nt):
-    z[1:-1] += D * dt / dx ** 2 * (z[:-2] - 2*z[1:-1] + z[2:])
+    plot_profile(x, z, title="Initial Hillslope Profile", output="initial-profile.png")
 
-plot_profile(x,z, color='b', title='Final Hillslope Profile',
-             output='final-profile.png')
+    nt = 5000  # number of time steps
+    dt = calculate_stable_time_step(dx, D)
+
+    for t in range(0, nt):
+        z[1:-1] += D * dt / dx**2 * (z[:-2] - 2 * z[1:-1] + z[2:])
+
+    plot_profile(
+        x, z, color="b", title="Final Hillslope Profile", output="final-profile.png"
+    )
